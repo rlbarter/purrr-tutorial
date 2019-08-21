@@ -63,9 +63,19 @@ addTen <- function(.x) {
   return(.x + 10)
 }
 
+
+
+
+
 #' Do you remember lapply?
 lapply(X = c(1, 4, 7), 
        FUN = addTen)
+
+
+
+
+
+
 
 
 #' map is pretty much the same thing
@@ -76,22 +86,25 @@ map(.x = c(1, 4, 7),
 #' .x can be a vector, list, or data frame
 
 
-
-#' ((((((( QUESTION: what are the elements of a data frame? Why? )))))))
-
-
-
-
-
-
 #' map always returns a list, no matter what the input type is
+
 
 #' input: list
 map(list(1, 4, 7), addTen)
 
+
+
+#' (((( QUESTION: what does map iterate over when the input is a data frame? Why? ))))
+
+
+
 #' input: data frame
-map(data.frame(a = 1, b = 4, c = 7), addTen)
- 
+df <- tribble(~a, ~b, ~c,
+              1, 4, 7,
+              10, 4, 1) 
+df
+map(df, addTen)
+
 
 
 
@@ -118,12 +131,12 @@ map(data.frame(a = 1, b = 4, c = 7), addTen)
 # output: vector (character)
 
 
-# output: data frame
+# output: data frame 
 
 
 
 
-# why doesn't this work?
+# ((((( QUESTION: why doesn't the data frame map work? )))))
 
 
 
@@ -131,7 +144,13 @@ map(data.frame(a = 1, b = 4, c = 7), addTen)
 
 
 
-#' need to ensure that the output of each iteration is a data frame
+
+
+
+
+
+
+# (((((( ANSWER: the output of each iteration needs to be a data frame ))))))
 map_df(c(1, 4, 7), function(.x) {
   data.frame(old_number = .x,
              new_numer = .x + 10)
@@ -157,17 +176,20 @@ modify(c(1, 4, 7), addTen)
 
 # ((((((((((( FILL IN: anonumous function then tilde-dot shorthand )))))))))))
 #' anonymous function map
-map(c(1, 4, 7), )
+map(c(1, 4, 7), function(number) {
+  number + 10
+})
+# write on one line
+# argument can be whatever you want
 
 
 
 
 
 
-
-#' Tilde-dot shorthand (argument is always `.x``)
+#' Tilde-dot shorthand 
 map(c(1, 4, 7), ~{.x + 10})
-
+# the argument is always `.x`
 
 
 
@@ -283,10 +305,18 @@ map_df(gapminder, ~{
 #'   A list 
 
 
-#' TASK: create a *list of plots* that compare *life expectancy* and *GDP*
+
+
+# (((((((((((((( TASK ))))))))))))))
+#' create a *list of plots* that compare *life expectancy* and *GDP*
 #' for each *continent/year combination*
 
 #' ((( QUESTION: which 2 things are we iterating over? )))
+
+
+
+
+
 
 
 
@@ -431,27 +461,27 @@ gapminder_nested %>%
 
 
 
-# ((((((( LIST COLUMNS )))))))
+# ((((((( UNDERSTANDING LIST COLUMNS )))))))
 
 #' First need to understand how mutate works
 
 #' Mutate applies the function to the entire column
 #' This is ok for vectorized functions applied to vectors
-cumsum(1:10)
-cumsum(list(1:10))
+sum(c(1, 5, 7))
+sum(list(c(1, 5, 7), 5, c(10, 10, 11)))
 
 #' but issues arise when the column is a list
 tibble(vec_col = c(1, 5, 7)) %>%
-  mutate(vec_sum = cumsum(vec_col))
+  mutate(vec_sum = sum(vec_col))
 
 tibble(list_col = list(c(1, 5, 7), 5, c(10, 10, 11))) %>%
-  mutate(list_sum = cumsum(list_col))
+  mutate(list_sum = sum(list_col))
 
 
 
 
 
-#' ((((((( EXERCISE: figure out how to apply cumsum to the list column )))))))
+#' ((((((( EXERCISE: figure out how to apply sum to the list column )))))))
 
 
 
@@ -472,7 +502,7 @@ tibble(list_col = list(c(1, 5, 7), 5, c(10, 10, 11))) %>%
 #' ANSWER: wrap it in a map function!
 
 tibble(list_col = list(c(1, 5, 7), 5, c(10, 10, 11))) %>%
-  mutate(list_sum = map(list_col, cumsum)) 
+  mutate(list_sum = map(list_col, sum)) 
   # pull(list_sum)
 
 
@@ -490,7 +520,7 @@ tibble(list_col = list(c(1, 5, 7), 5, c(10, 10, 11))) %>%
 ######################## MODELING NESTED GAPMINDER ############################
 #' # Modeling the nested gapminder data
 
-#' EXERCISE 1: To create a column with the average life expectancy for each,
+#' EXERCISE 1: To create a column with the average life expectancy for each continent,
 #'             why doesn't the following code work?
 gapminder_nested %>% 
   mutate(avg_lifeExp = mean(data$lifeExp))
@@ -532,10 +562,6 @@ mean(.x$lifeExp)
 #' ANSWER 1: the `data` column doesn't have an entry called `lifeExp`
 
 #' ANSWER 2:
-#' the following code will do what we want for a single data frame .x
-mean(.x$lifeExp)
-
-#' Copy and paste it into a map function within the mutate function
 gapminder_nested %>% 
   mutate(avg_lifeExp = map_dbl(data, ~{mean(.x$lifeExp)}))
 
@@ -564,7 +590,8 @@ gapminder_nested %>%
 #' called lm_obj
 
 # the model for the first data frame is
-.x <- gapminder_nested %>% pluck("data", 1)
+
+# .x <- gapminder_nested %>% pluck("data", 1)
 lm(lifeExp ~ pop + gdpPercap + year, data = .x)
 
 
